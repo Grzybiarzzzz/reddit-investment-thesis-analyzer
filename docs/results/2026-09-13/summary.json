@@ -1,0 +1,110 @@
+{
+  "7": {
+    "stocks": 67,
+    "paired_stocks": 67,
+    "statuses": {
+      "ok": 67
+    },
+    "mean_return_pct": -0.7637925431830526,
+    "median_return_pct": -1.9538783372403334,
+    "mean_excess_spy_pp": -0.11609295432445789,
+    "median_excess_spy_pp": -0.2570683573464905,
+    "beat_spy": 32,
+    "score_excess_spearman": -0.006565162743989231
+  },
+  "14": {
+    "stocks": 67,
+    "paired_stocks": 67,
+    "statuses": {
+      "ok": 67
+    },
+    "mean_return_pct": -4.0763572182576455,
+    "median_return_pct": -5.390450292159543,
+    "mean_excess_spy_pp": -2.57886984914048,
+    "median_excess_spy_pp": -2.7636782187599236,
+    "beat_spy": 22,
+    "score_excess_spearman": -0.02667970391706262
+  },
+  "30": {
+    "stocks": 67,
+    "paired_stocks": 67,
+    "statuses": {
+      "ok": 67
+    },
+    "mean_return_pct": 0.5282594192002825,
+    "median_return_pct": 2.4298823833527106,
+    "mean_excess_spy_pp": -5.253299846791199,
+    "median_excess_spy_pp": -3.282680890846045,
+    "beat_spy": 26,
+    "score_excess_spearman": -0.14706762742614174
+  },
+  "60": {
+    "stocks": 67,
+    "paired_stocks": 67,
+    "statuses": {
+      "ok": 67
+    },
+    "mean_return_pct": 21.53342989227532,
+    "median_return_pct": 0.7349655729094184,
+    "mean_excess_spy_pp": 8.60017155739163,
+    "median_excess_spy_pp": -10.508606668994759,
+    "beat_spy": 25,
+    "score_excess_spearman": -0.14916289213167022
+  },
+  "90": {
+    "stocks": 67,
+    "paired_stocks": 67,
+    "statuses": {
+      "ok": 67
+    },
+    "mean_return_pct": 6.159280987167883,
+    "median_return_pct": -2.5809060255133853,
+    "mean_excess_spy_pp": -6.313564126810688,
+    "median_excess_spy_pp": -15.425685904696497,
+    "beat_spy": 24,
+    "score_excess_spearman": -0.14952208036690368
+  },
+  "120": {
+    "stocks": 67,
+    "paired_stocks": 66,
+    "statuses": {
+      "ok": 66,
+      "missing_stock_price": 1
+    },
+    "mean_return_pct": 3.0223965980146748,
+    "median_return_pct": -0.8819694446615789,
+    "mean_excess_spy_pp": -10.634164942421254,
+    "median_excess_spy_pp": -14.656501384892795,
+    "beat_spy": 21,
+    "score_excess_spearman": -0.17112020408490958
+  },
+  "180": {
+    "stocks": 67,
+    "paired_stocks": 42,
+    "statuses": {
+      "ok": 42,
+      "market_calendar_unavailable": 8,
+      "not_due": 17
+    },
+    "mean_return_pct": 6.695267383477926,
+    "median_return_pct": 3.5203059218109622,
+    "mean_excess_spy_pp": -8.29842447326857,
+    "median_excess_spy_pp": -11.595432563454189,
+    "beat_spy": 13,
+    "score_excess_spearman": -0.2557036969455492
+  },
+  "latest": {
+    "stocks": 67,
+    "paired_stocks": 66,
+    "statuses": {
+      "ok": 66,
+      "missing_stock_price": 1
+    },
+    "mean_return_pct": 2.5053207110481317,
+    "median_return_pct": 1.7914734413408628,
+    "mean_excess_spy_pp": -13.718766859287651,
+    "median_excess_spy_pp": -13.609631516810971,
+    "beat_spy": 19,
+    "score_excess_spearman": -0.24704605284138345
+  }
+}

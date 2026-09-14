@@ -1,0 +1,68 @@
+name: Analyze & Track
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DB_PATH: research/run/reddit_stocks.db
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Check scoring credentials
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "Configure the GEMINI_API_KEY repository secret before running this workflow."
+            exit 1
+          fi
+
+      - name: Prepare working database
+        run: |
+          mkdir -p research/run
+          cp reddit_stocks.db "$DB_PATH"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download ticker data
+        run: python scripts/download_tickers.py
+
+      - name: Analyze
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python main.py analyze
+
+      - name: Track
+        run: python main.py track
+
+      - name: Consolidate database
+        run: |
+          python - <<'PY'
+          import os, sqlite3
+          with sqlite3.connect(os.environ['DB_PATH']) as connection:
+              busy, _, _ = connection.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()
+              if busy:
+                  raise RuntimeError('Database checkpoint is busy')
+          PY
+
+      - name: Upload run database
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis-database-${{ github.run_id }}
+          path: research/run/reddit_stocks.db
+          if-no-files-found: error
+          retention-days: 7

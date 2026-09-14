@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RedditStockMarket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Auth overlay (hidden by default) -->
+  <div id="auth-overlay" class="auth-overlay" style="display:none">
+    <div class="auth-box">
+      <div class="auth-header">ACCESS REQUIRED</div>
+      <form id="auth-form">
+        <label for="api-key-input" class="auth-label">api_key:</label>
+        <input
+          id="api-key-input"
+          type="password"
+          class="auth-input"
+          placeholder="enter access key"
+          autocomplete="current-password"
+          required
+        >
+        <button type="submit" class="auth-submit">authenticate</button>
+        <div id="auth-error" class="auth-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- HTTPS warning (hidden by default) -->
+  <div id="https-warning" class="https-warning" style="display:none">
+    <span class="warning-icon">&#9888;</span>
+    Connection is not secure. API key may be transmitted in plaintext.
+  </div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="logo">RedditStockMarket</span>
+    </div>
+    <div class="topbar-right">
+      <span id="db-stats" class="db-stats"></span>
+      <button id="theme-toggle" class="theme-toggle">theme</button>
+      <button id="logout-btn" class="logout-btn" style="display:none">logout</button>
+    </div>
+  </div>
+
+  <!-- Ticker strip (broadsheet theme only, hidden by default via CSS) -->
+  <div class="ticker-strip" id="ticker-strip"></div>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <button class="nav-tab active" data-page="dashboard">// dashboard</button>
+    <button class="nav-tab" data-page="feed">// feed</button>
+    <button class="nav-tab" data-page="tracked">// tracked</button>
+    <button class="nav-tab" data-page="portfolio">// portfolio</button>
+    <button class="nav-tab" data-page="analytics">// analytics</button>
+    <button class="nav-tab" data-page="project">// project</button>
+  </nav>
+
+  <aside class="measurement-note" style="padding:12px 3%;font-size:13px;line-height:1.5">
+    Exploratory observations. Horizons are nominal: delayed runs use the price fetched when the pipeline runs.
+    Historical fetch times are unknown. “Excess vs SPY” is a price-return difference, not risk-adjusted alpha.
+    Portfolio insights use the selected horizon; tracked-stock summaries use each stock's latest available observation.
+  </aside>
+
+  <!-- Main content -->
+  <div id="content" class="content">
+    <!-- Rendered by JavaScript -->
+  </div>
+
+  <!-- Command line footer -->
+  <div class="cmdline">
+    <span class="cmdline-prompt">signal&gt;</span>
+    <span id="cmd-text" class="cmdline-text">ready_</span>
+    <span class="cmdline-cursor"></span>
+  </div>
+
+  <!-- Apply saved theme immediately to prevent flash -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'terminal';
+      if (t !== 'terminal') document.documentElement.setAttribute('data-theme', t);
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.textContent = t === 'terminal' ? 'broadsheet' : 'terminal';
+    })();
+  </script>
+  <!-- Scripts: charts.js before app.js (app.js calls chart functions) -->
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
