@@ -1,13 +1,12 @@
 # main.py
 import argparse
 import os
-import sys
 from config.settings import (
     REDDIT_USER_AGENT, SCRAPER_DELAY,
     ANTHROPIC_API_KEY, GEMINI_API_KEY, SUBREDDITS, SORT_MODES, POSTS_PER_SORT,
     MIN_COMMENT_SCORE, MIN_COMMENT_LENGTH, FINANCIAL_KEYWORDS,
     SCORING_BACKEND, SCORING_MODEL, OLLAMA_MODEL, OLLAMA_BASE_URL,
-    GEMINI_MODEL, GEMINI_FALLBACK_MODEL, GEMINI_API_KEY, GEMINI_VERTEX_PROJECT, GEMINI_VERTEX_LOCATION,
+    GEMINI_MODEL, GEMINI_FALLBACK_MODEL, GEMINI_VERTEX_PROJECT, GEMINI_VERTEX_LOCATION,
     LLM_RATE_LIMIT_DELAY,
     LLM_BATCH_SIZE, SCORE_WEIGHTS, MIN_MENTIONS, MIN_AVG_SCORE,
     MENTION_LOOKBACK_DAYS, RETRACK_COOLDOWN_DAYS, CHECKPOINTS,
@@ -98,9 +97,9 @@ def stage_track(db):
     print(f"  New discoveries: {len(discoveries)}")
     print(f"  Checkpoint updates: {len(checkpoint_updates)}")
 
-    completed = db.get_active_tracked_stocks()
+    tracked = db.get_all_tracked_stocks()
     reporter = ConsoleReporter()
-    reporter.print_report(discoveries, checkpoint_updates, completed)
+    reporter.print_report(discoveries, checkpoint_updates, tracked)
 
 
 def run_pipeline(stages):

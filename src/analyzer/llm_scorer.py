@@ -31,17 +31,6 @@ TICKER_ALIASES = {
 }
 
 
-def _normalize_ticker(ticker: str, company_map: dict[str, str]) -> str | None:
-    """Normalize a ticker string to a canonical uppercase ticker symbol.
-
-    Returns None if the ticker can't be normalized to a known symbol.
-    """
-    stripped = ticker.strip().upper()
-    if not stripped:
-        return None
-    return TICKER_ALIASES.get(stripped, stripped)
-
-
 def _validate_and_filter_tickers(
     tickers: list[str],
     valid_tickers: set[str],
@@ -109,7 +98,7 @@ def analyze_content(db: Database, heuristic_filter: HeuristicFilter,
         else:
             db.mark_processed(source_type, source_id)
             stats["filtered_out"] += 1
-    db.conn.commit()
+    db.commit()
 
     total_batches = (len(survivors) + batch_size - 1) // batch_size if survivors else 0
     print(f"    Passed filter: {len(survivors)} ({total_batches} batches of {batch_size})")
@@ -156,11 +145,6 @@ def analyze_content(db: Database, heuristic_filter: HeuristicFilter,
                     for vt in validated:
                         if vt not in EXCLUDED_TICKERS:
                             llm_tickers_with_scores[vt] = score
-
-            # Validate heuristic tickers too
-            validated_filter_tickers = _validate_and_filter_tickers(
-                filter_tickers, valid_tickers, company_map_lower
-            )
 
             # Merge: LLM tickers get their own scores; heuristic-only tickers
             # are skipped (no LLM thesis = no score to record)
@@ -211,6 +195,10 @@ def analyze_content(db: Database, heuristic_filter: HeuristicFilter,
         # Rate limit delay between batches (for API quota limits)
         if rate_limit_delay > 0 and i + batch_size < len(survivors):
             time.sleep(rate_limit_delay)
+
+    # mark_processed does not commit on its own; without this, items after the
+    # last stored assessment would be scored again on the next run.
+    db.commit()
 
     total_time = time.time() - start_time
     print(f"    Scoring complete in {total_time/60:.1f} minutes")

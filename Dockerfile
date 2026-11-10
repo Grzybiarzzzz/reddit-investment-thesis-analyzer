@@ -18,9 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the project into the container
 COPY . .
 
-# Download ticker data (needed for the analyze stage)
-RUN python scripts/download_tickers.py
-
 # Expose the dashboard port
 EXPOSE 8050
 

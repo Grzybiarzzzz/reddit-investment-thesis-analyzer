@@ -1,6 +1,6 @@
 """Dashboard API route."""
 from fastapi import APIRouter
-from src.api.app import get_db
+from src.api.app import get_db, data_as_of, PERMALINK_SQL
 
 router = APIRouter()
 
@@ -12,14 +12,16 @@ async def dashboard():
         # KPIs
         tracked_count = db.execute("SELECT COUNT(*) FROM tracked_stocks").fetchone()[0]
         active_count = db.execute("SELECT COUNT(*) FROM tracked_stocks WHERE status = 'active'").fetchone()[0]
+        # "Today" is the latest day with data, so a frozen snapshot is not empty.
+        as_of = data_as_of(db)
         posts_today = db.execute(
-            "SELECT COUNT(*) FROM posts WHERE scraped_at >= date('now')"
+            "SELECT COUNT(*) FROM posts WHERE scraped_at >= date(?)", (as_of,)
         ).fetchone()[0]
         scored_today = db.execute(
-            "SELECT COUNT(*) FROM analysis WHERE llm_scored = 1 AND analyzed_at >= date('now')"
+            "SELECT COUNT(*) FROM analysis WHERE llm_scored = 1 AND analyzed_at >= date(?)", (as_of,)
         ).fetchone()[0]
         comments_today = db.execute(
-            "SELECT COUNT(*) FROM comments WHERE scraped_at >= date('now')"
+            "SELECT COUNT(*) FROM comments WHERE scraped_at >= date(?)", (as_of,)
         ).fetchone()[0]
 
         # Win rate: stocks where return > SPY return at latest checkpoint
@@ -143,11 +145,11 @@ async def dashboard():
             active_stocks.append({**s, "checkpoints_done": checkpoints_done})
 
         # Recent feed (top 5 scored today)
-        feed_rows = db.execute("""
+        feed_rows = db.execute(f"""
             SELECT a.*,
                    COALESCE(p.title, cp.title) as title,
                    COALESCE(p.subreddit, cp.subreddit) as subreddit,
-                   COALESCE(p.url, cp.url) as reddit_url
+                   {PERMALINK_SQL} as reddit_url
             FROM analysis a
             LEFT JOIN posts p ON a.source_type = 'post' AND a.source_id = p.id
             LEFT JOIN comments c ON a.source_type = 'comment' AND a.source_id = c.id
@@ -167,11 +169,11 @@ async def dashboard():
                    SUM(CASE WHEN sentiment = 'bear' THEN 1 ELSE 0 END) as bear_count,
                    SUM(CASE WHEN sentiment = 'neutral' THEN 1 ELSE 0 END) as neutral_count
             FROM analysis
-            WHERE llm_scored = 1 AND analyzed_at >= datetime('now', '-7 days')
+            WHERE llm_scored = 1 AND analyzed_at >= datetime(?, '-7 days')
             GROUP BY ticker
             ORDER BY mention_count DESC
             LIMIT 10
-        """).fetchall()
+        """, (as_of,)).fetchall()
         top_tickers = []
         for r in ticker_rows:
             d = dict(r)
@@ -181,6 +183,7 @@ async def dashboard():
             top_tickers.append(d)
 
         return {
+            "as_of": as_of,
             "kpis": kpis,
             "active_stocks": active_stocks,
             "recent_feed": recent_feed,

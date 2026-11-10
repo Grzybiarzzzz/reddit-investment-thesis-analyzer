@@ -46,7 +46,6 @@ def _compute_checkpoint(filtered: list[dict], days: int) -> dict | None:
     wins = sum(1 for s in stocks_at_cp if s["alpha"] > 0)
     return {
         "count": n,
-        "total": len(stocks_at_cp),
         "invested": invested,
         "portfolio_value": round(portfolio_value, 2),
         "spy_value": round(spy_value, 2),

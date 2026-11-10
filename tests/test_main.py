@@ -31,7 +31,7 @@ class TestMainPipeline:
         mock_tracker.update_checkpoints.return_value = []
         mock_tracker_cls.return_value = mock_tracker
 
-        mock_db.get_active_tracked_stocks.return_value = []
+        mock_db.get_all_tracked_stocks.return_value = []
 
         run_pipeline(["scrape", "analyze", "track"])
 

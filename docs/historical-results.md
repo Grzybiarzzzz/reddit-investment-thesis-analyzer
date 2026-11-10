@@ -37,7 +37,7 @@ These descriptive results do not support a positive score–return relationship 
 5. **Return:** `100 × (historical close / normalized entry quote − 1)`. Excess return is stock return minus benchmark return, in percentage points. This is price performance, excluding dividends and transaction costs; it is not total return or risk-adjusted alpha. The separately cached adjusted close is not used. [Yahoo price-adjustment documentation](https://help.yahoo.com/kb/SLN28256.html).
 6. **Intraday timing:** entry quotes and daily closing prices need not represent the same time of day. An exact executable entry price or historical bid–ask spread cannot be recovered from this snapshot.
 
-The CSV also includes comparisons against each stock's stored sector ETF. Some stored choices use SPY as a fallback, so these should not be interpreted as a uniform sector-control design.
+The CSV also includes comparisons against each stock's stored sector ETF. For 24 of the 67 stocks the stored choice is SPY rather than a sector fund. A known cause is that, at collection time, the sector mapping used GICS names, which did not match the names returned by the price provider for financial, consumer cyclical, consumer defensive, and basic-materials companies; stocks with no provider sector also fall back to SPY. The stored values are left as recorded, so these comparisons should not be interpreted as a uniform sector-control design.
 
 ## Coverage and corporate actions
 

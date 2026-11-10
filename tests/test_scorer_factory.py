@@ -13,7 +13,7 @@ class TestScorerFactory:
         scorer = create_scorer("mock")
         assert isinstance(scorer, MockScorer)
 
-    @patch("src.scoring.factory.anthropic.Anthropic")
+    @patch("src.scoring.anthropic_scorer.anthropic.Anthropic")
     def test_creates_anthropic_scorer(self, mock_cls):
         scorer = create_scorer("anthropic", api_key="test", model="claude-haiku-4-5-20251001")
         assert isinstance(scorer, AnthropicScorer)
