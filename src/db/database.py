@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from pathlib import Path
 from src.db.models import SCHEMA
 
 
@@ -26,6 +26,16 @@ class Database:
             if name not in columns:
                 self.conn.execute(f"ALTER TABLE tracked_stocks ADD COLUMN {name} TEXT")
         self.conn.commit()
+
+    def open_read_only(self):
+        """Open an existing database without running migrations or writing.
+
+        The dashboard uses this so that viewing a published snapshot leaves the
+        file byte-for-byte unchanged (the evaluation scripts verify its hash).
+        """
+        uri = Path(self.db_path).resolve().as_uri() + "?mode=ro"
+        self.conn = sqlite3.connect(uri, uri=True)
+        self.conn.row_factory = sqlite3.Row
 
     def close(self):
         if self.conn:
@@ -89,6 +99,9 @@ class Database:
             (source_type, source_id),
         )
 
+    def commit(self):
+        self.conn.commit()
+
     def get_ticker_mentions(self, ticker: str, days: int) -> list[dict]:
         rows = self.conn.execute(
             """SELECT * FROM analysis
@@ -126,6 +139,10 @@ class Database:
         )
         self.conn.commit()
         return cursor.lastrowid
+
+    def get_all_tracked_stocks(self) -> list[dict]:
+        rows = self.conn.execute("SELECT * FROM tracked_stocks").fetchall()
+        return [dict(r) for r in rows]
 
     def get_active_tracked_stocks(self) -> list[dict]:
         rows = self.conn.execute(

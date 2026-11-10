@@ -9,10 +9,39 @@ from src.db.database import Database
 
 
 def get_db() -> Database:
-    """Create and initialize a database connection."""
+    """Open the database for a request.
+
+    An existing database is opened read-only: serving the dashboard must not
+    migrate or otherwise modify it. A missing one is created empty so a fresh
+    checkout still renders.
+    """
     db = Database(settings.DB_PATH)
-    db.initialize()
+    if os.path.exists(settings.DB_PATH):
+        db.open_read_only()
+    else:
+        db.initialize()
     return db
+
+
+def data_as_of(db: Database) -> str | None:
+    """Latest scrape or assessment timestamp in the database (UTC), if any.
+
+    Relative windows ("latest day", "last 7 days") are anchored here rather than
+    at the wall clock, so a frozen snapshot shows its final days of activity
+    instead of empty panels. For a live database the two are equivalent.
+    """
+    return db.execute(
+        """SELECT MAX(t) FROM (SELECT MAX(scraped_at) AS t FROM posts
+                               UNION ALL SELECT MAX(scraped_at) FROM comments
+                               UNION ALL SELECT MAX(analyzed_at) FROM analysis)"""
+    ).fetchone()[0]
+
+
+# Reddit thread (or comment) permalink. posts.url is the submitted link, which
+# for link and image posts points away from Reddit.
+PERMALINK_SQL = """'https://www.reddit.com/r/' || COALESCE(p.subreddit, cp.subreddit)
+                   || '/comments/' || COALESCE(p.id, cp.id) || '/'
+                   || CASE WHEN a.source_type = 'comment' THEN '_/' || c.id || '/' ELSE '' END"""
 
 
 def create_app() -> FastAPI:

@@ -1,9 +1,14 @@
 # src/tracker/stock_tracker.py
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from collections import Counter
 from src.db.database import Database
 from src.tracker.benchmark import get_current_price, get_sector_etf
 from src.analyzer.llm_scorer import EXCLUDED_TICKERS
+
+
+def _utcnow() -> datetime:
+    """Naive UTC, matching SQLite's datetime('now') values stored in the DB."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class StockTracker:
@@ -74,7 +79,7 @@ class StockTracker:
         """Check and update price checkpoints for all active tracked stocks."""
         updates = []
         active = self.db.get_active_tracked_stocks()
-        now = datetime.utcnow()
+        now = _utcnow()
 
         for stock in active:
             discovered = datetime.fromisoformat(stock["discovered_at"])
@@ -100,7 +105,7 @@ class StockTracker:
                     stock_price=stock_price,
                     spy_price=spy_price,
                     sector_etf_price=sector_etf_price,
-                    observed_at=datetime.utcnow().isoformat(),
+                    observed_at=_utcnow().isoformat(),
                 )
 
                 stock[field_name] = stock_price

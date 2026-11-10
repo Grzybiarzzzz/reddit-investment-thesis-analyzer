@@ -1,6 +1,6 @@
 """Analytics API route."""
 from fastapi import APIRouter, Query, HTTPException
-from src.api.app import get_db
+from src.api.app import get_db, data_as_of
 
 router = APIRouter()
 
@@ -12,18 +12,20 @@ async def analytics(days: int = Query(30, ge=1, le=365),
         raise HTTPException(status_code=422, detail="Checkpoint must be 7, 14, 30, or 90")
     db = get_db()
     try:
-        date_filter = f"-{days} days"
+        # The window ends at the latest data in the database, not the wall clock.
+        as_of = data_as_of(db)
+        date_filter = db.execute("SELECT datetime(?, ?)", (as_of, f"-{days} days")).fetchone()[0]
 
         # Score distribution (buckets of 10)
         score_rows = db.execute("""
-            SELECT (overall_score / 10) * 10 as bucket, COUNT(*) as count
+            SELECT MIN(overall_score / 10, 9) * 10 as bucket, COUNT(*) as count
             FROM analysis
-            WHERE llm_scored = 1 AND analyzed_at >= datetime('now', ?)
+            WHERE llm_scored = 1 AND analyzed_at >= ?
             GROUP BY bucket
             ORDER BY bucket
         """, (date_filter,)).fetchall()
         score_distribution = [
-            {"bucket": f"{d['bucket']}-{d['bucket'] + 9}", "count": d["count"]}
+            {"bucket": f"{d['bucket']}-{100 if d['bucket'] == 90 else d['bucket'] + 9}", "count": d["count"]}
             for d in [dict(r) for r in score_rows]
         ]
 
@@ -37,7 +39,7 @@ async def analytics(days: int = Query(30, ge=1, le=365),
                        CASE WHEN a.sentiment = 'neutral' THEN 1 ELSE 0 END as neutral
                 FROM analysis a
                 JOIN posts p ON a.source_type = 'post' AND a.source_id = p.id
-                WHERE a.llm_scored = 1 AND a.analyzed_at >= datetime('now', ?)
+                WHERE a.llm_scored = 1 AND a.analyzed_at >= ?
                 UNION ALL
                 SELECT p.subreddit as sub,
                        CASE WHEN a.sentiment = 'bull' THEN 1 ELSE 0 END as bull,
@@ -46,7 +48,7 @@ async def analytics(days: int = Query(30, ge=1, le=365),
                 FROM analysis a
                 JOIN comments c ON a.source_type = 'comment' AND a.source_id = c.id
                 JOIN posts p ON c.post_id = p.id
-                WHERE a.llm_scored = 1 AND a.analyzed_at >= datetime('now', ?)
+                WHERE a.llm_scored = 1 AND a.analyzed_at >= ?
             )
             GROUP BY sub
             ORDER BY (bull + bear + neutral) DESC
@@ -74,13 +76,13 @@ async def analytics(days: int = Query(30, ge=1, le=365),
                 SELECT p.subreddit as sub, a.overall_score as score
                 FROM analysis a
                 JOIN posts p ON a.source_type = 'post' AND a.source_id = p.id
-                WHERE a.llm_scored = 1 AND a.analyzed_at >= datetime('now', ?)
+                WHERE a.llm_scored = 1 AND a.analyzed_at >= ?
                 UNION ALL
                 SELECT p.subreddit as sub, a.overall_score as score
                 FROM analysis a
                 JOIN comments c ON a.source_type = 'comment' AND a.source_id = c.id
                 JOIN posts p ON c.post_id = p.id
-                WHERE a.llm_scored = 1 AND a.analyzed_at >= datetime('now', ?)
+                WHERE a.llm_scored = 1 AND a.analyzed_at >= ?
             )
             GROUP BY sub
             ORDER BY avg_score DESC
@@ -92,7 +94,7 @@ async def analytics(days: int = Query(30, ge=1, le=365),
             SELECT date(scraped_at) as date,
                    COUNT(*) as posts
             FROM posts
-            WHERE scraped_at >= datetime('now', ?)
+            WHERE scraped_at >= ?
             GROUP BY date(scraped_at)
             ORDER BY date
         """, (date_filter,)).fetchall()
@@ -103,7 +105,7 @@ async def analytics(days: int = Query(30, ge=1, le=365),
             SELECT date(scraped_at) as date,
                    COUNT(*) as comments
             FROM comments
-            WHERE scraped_at >= datetime('now', ?)
+            WHERE scraped_at >= ?
             GROUP BY date(scraped_at)
             ORDER BY date
         """, (date_filter,)).fetchall()
@@ -114,6 +116,8 @@ async def analytics(days: int = Query(30, ge=1, le=365),
             "sentiment_by_subreddit": sentiment_by_subreddit,
             "accuracy_by_score": accuracy_by_score,
             "checkpoint_days": checkpoint,
+            "as_of": as_of,
+            "window_days": days,
             "measurement_note": "Nominal horizons; legacy checkpoint observation times are unknown.",
             "subreddit_leaderboard": subreddit_leaderboard,
             "daily_volume": daily_volume,

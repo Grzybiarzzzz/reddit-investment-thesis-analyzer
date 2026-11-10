@@ -6,7 +6,7 @@ I investigate whether better-supported investment arguments in Reddit discussion
 
 The database contains 4,046 posts and 31,668 comments from eight investing communities. There are 7,632 per-stock assessments across 5,960 source items, with scoring records dated 12 March–4 April 2026. Some source discussions predate that period.
 
-The tracked sample contains 67 stocks, with 62 nominal seven-day observations and 50 fourteen-day observations. There are no 30- or 90-day outcomes. Multiple assessments can come from one post, and repeated mentions of a stock are not independent investment outcomes.
+The tracked sample contains 67 stocks, with 62 nominal seven-day observations and 50 fourteen-day observations recorded by the tracker. The tracker recorded no 30- or 90-day observations; outcomes at those horizons come from the separate [historical price evaluation](historical-results.md), which reconstructs them from daily closing prices. Multiple assessments can come from one post, and repeated mentions of a stock are not independent investment outcomes.
 
 Only part of the collected text has recorded assessments. Processing status alone does not establish whether an item received an LLM assessment; assessment coverage is counted from the analysis records.
 

@@ -1,7 +1,7 @@
 # tests/test_tracker.py
 import pytest
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.tracker.benchmark import get_current_price, get_sector_etf
 from src.tracker.stock_tracker import StockTracker
 
@@ -112,7 +112,7 @@ class TestStockTracker:
     @patch("src.tracker.stock_tracker.get_current_price")
     def test_update_checkpoints(self, mock_price, mock_db):
         mock_price.return_value = 185.00
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         mock_db.get_active_tracked_stocks.return_value = [
             {
                 "id": 1,

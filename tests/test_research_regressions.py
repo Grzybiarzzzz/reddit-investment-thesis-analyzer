@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.db.database import Database
 
@@ -30,7 +30,7 @@ def test_delayed_checkpoint_records_actual_fetch_time_and_preserves_history(tmp_
     db.initialize()
     stock_id = db.insert_tracked_stock('AAPL', 100, 'XLK', 5, 75, 100, 100)
     db.execute('UPDATE tracked_stocks SET discovered_at=? WHERE id=?',
-               ((datetime.utcnow() - timedelta(days=16)).isoformat(), stock_id))
+               ((datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=16)).isoformat(), stock_id))
     db.update_checkpoint(stock_id, 7, 110, 102, 103)
     monkeypatch.setattr('src.tracker.stock_tracker.get_current_price', lambda t: {'AAPL':120,'SPY':105,'XLK':106}[t])
     tracker = StockTracker(db, 5, 65, 7, 90, [7,14,30,90], {})
@@ -51,7 +51,7 @@ def test_failed_final_checkpoint_does_not_complete_stock(tmp_path, monkeypatch):
     db = Database(str(tmp_path / 'incomplete.db')); db.initialize()
     sid = db.insert_tracked_stock('AAPL',100,'XLK',5,75,100,100)
     db.execute('UPDATE tracked_stocks SET discovered_at=? WHERE id=?',
-               ((datetime.utcnow()-timedelta(days=100)).isoformat(),sid))
+               ((datetime.now(timezone.utc).replace(tzinfo=None)-timedelta(days=100)).isoformat(),sid))
     for day in [7,14,30]: db.update_checkpoint(sid,day,101,101,101)
     monkeypatch.setattr('src.tracker.stock_tracker.get_current_price',lambda t:None)
     StockTracker(db,5,65,7,90,[7,14,30,90],{}).update_checkpoints()
@@ -80,7 +80,7 @@ def test_already_filled_final_checkpoint_completes_without_fetch(tmp_path, monke
     db=Database(str(tmp_path/'complete.db'));db.initialize()
     sid=db.insert_tracked_stock('AAPL',100,'XLK',5,75,100,100)
     db.execute('UPDATE tracked_stocks SET discovered_at=? WHERE id=?',
-               ((datetime.utcnow()-timedelta(days=100)).isoformat(),sid))
+               ((datetime.now(timezone.utc).replace(tzinfo=None)-timedelta(days=100)).isoformat(),sid))
     # A custom checkpoint list must not rely on a price variable from a loop iteration.
     db.update_checkpoint(sid,90,110,105,104)
     def forbidden(t): raise AssertionError('No fetch should be needed')

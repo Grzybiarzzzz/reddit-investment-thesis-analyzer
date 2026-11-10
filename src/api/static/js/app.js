@@ -12,6 +12,9 @@
 
   const CACHE_TTL = 300000; // 5 minutes
   const CHECKPOINT_DAYS = [7, 14, 30, 90];
+  // Mirrors SUBREDDITS in config/settings.py.
+  const SUBREDDITS = ['wallstreetbets', 'stocks', 'investing', 'ValueInvesting', 'StockMarket',
+    'SecurityAnalysis', 'smallstreetbets', 'pennystocks', 'Undervalued'];
   const ROUTES = ['dashboard', 'feed', 'tracked', 'portfolio', 'analytics', 'project'];
 
   // -----------------------------------------------------------------------
@@ -389,6 +392,8 @@
     if (!content) return;
 
     const kpis = data.kpis || {};
+    // Counts are for the latest day with data, which is not today for a frozen snapshot.
+    const latestDay = data.as_of ? String(data.as_of).slice(0, 10) : null;
     const alphaFmt = formatPercent(kpis.avg_alpha_30d);
     const winRateVal = kpis.win_rate == null ? null : kpis.win_rate * 100;
     const winRateCls = winRateVal >= 50 ? 'green' : 'red';
@@ -438,14 +443,14 @@
         <div class="stat-sub">${worstPick ? formatPercent(worstPick.return_pct).text : ''}</div>
       </div>
       <div class="stat-card stat-card-sm">
-        <div class="stat-label">Today's Scrape</div>
+        <div class="stat-label">Latest Scrape Day</div>
         <div class="stat-value amber">${escapeHtml(kpis.posts_today + (kpis.comments_today || 0))}</div>
         <div class="stat-sub">${escapeHtml(kpis.posts_today)} posts · ${escapeHtml(kpis.comments_today || 0)} comments</div>
       </div>
       <div class="stat-card stat-card-sm">
-        <div class="stat-label">Scored Today</div>
+        <div class="stat-label">Scored (Latest Day)</div>
         <div class="stat-value purple">${escapeHtml(kpis.scored_today)}</div>
-        <div class="stat-sub">LLM analyzed</div>
+        <div class="stat-sub">${latestDay ? escapeHtml(latestDay) : 'LLM analyzed'}</div>
       </div>
     </div>
 
@@ -496,7 +501,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title"><span class="accent">//</span> Recent Signals</span>
-          <span class="panel-badge">Today</span>
+          <span class="panel-badge">Latest</span>
         </div>
         <div class="panel-body">`;
 
@@ -558,7 +563,7 @@
     // Update topbar stats
     const dbStats = document.getElementById('db-stats');
     if (dbStats) {
-      dbStats.textContent = `${kpis.tracked_count} tracked / ${kpis.posts_today} posts / ${kpis.comments_today || 0} comments today`;
+      dbStats.textContent = `${kpis.tracked_count} tracked / ${kpis.posts_today} posts / ${kpis.comments_today || 0} comments on ${latestDay || 'latest day'}`;
     }
 
     // Defer chart rendering to next frame so DOM layout is complete
@@ -590,11 +595,9 @@
       <label>Sub</label>
       <select id="filter-subreddit">
         <option value="">All</option>
-        <option value="wallstreetbets" ${feedState.subreddit === 'wallstreetbets' ? 'selected' : ''}>wallstreetbets</option>
-        <option value="stocks" ${feedState.subreddit === 'stocks' ? 'selected' : ''}>stocks</option>
-        <option value="investing" ${feedState.subreddit === 'investing' ? 'selected' : ''}>investing</option>
-        <option value="stockmarket" ${feedState.subreddit === 'stockmarket' ? 'selected' : ''}>stockmarket</option>
-        <option value="pennystocks" ${feedState.subreddit === 'pennystocks' ? 'selected' : ''}>pennystocks</option>
+        ${SUBREDDITS.map(function (name) {
+          return `<option value="${name}" ${feedState.subreddit === name ? 'selected' : ''}>${name}</option>`;
+        }).join('')}
       </select>
       <label>Sentiment</label>
       <select id="filter-sentiment">

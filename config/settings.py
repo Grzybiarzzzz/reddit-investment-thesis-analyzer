@@ -29,7 +29,6 @@ SUBREDDITS = [
 ]
 
 # Scraping settings
-LOOKBACK_HOURS = 24
 MIN_COMMENT_SCORE = 3
 SORT_MODES = ["hot", "new"]
 POSTS_PER_SORT = 50
@@ -49,7 +48,7 @@ FINANCIAL_KEYWORDS = [
 
 # LLM scoring settings
 SCORING_BACKEND = "gemini"  # "anthropic", "ollama", "gemini", "mock"
-SCORING_MODEL = "claude-haiku-4-5-20251001"
+SCORING_MODEL = "claude-haiku-4-5-20251001"  # used by the "anthropic" backend
 OLLAMA_MODEL = "qwen3.5:4b"
 OLLAMA_BASE_URL = "http://localhost:11434"
 GEMINI_MODEL = "gemini-2.5-flash"
@@ -77,17 +76,19 @@ CHECKPOINTS = [7, 14, 30, 90]
 # Benchmark
 MARKET_BENCHMARK = "SPY"
 
-# Sector ETF mapping
+# Sector ETF mapping. Keys are the sector names Yahoo Finance returns (via
+# yfinance), which differ from GICS names for four sectors. Unmapped sectors
+# fall back to SPY.
 SECTOR_ETF_MAP = {
     "Technology": "XLK",
     "Healthcare": "XLV",
-    "Financials": "XLF",
-    "Consumer Discretionary": "XLY",
-    "Consumer Staples": "XLP",
+    "Financial Services": "XLF",
+    "Consumer Cyclical": "XLY",
+    "Consumer Defensive": "XLP",
     "Energy": "XLE",
     "Utilities": "XLU",
     "Industrials": "XLI",
-    "Materials": "XLB",
+    "Basic Materials": "XLB",
     "Real Estate": "XLRE",
     "Communication Services": "XLC",
 }

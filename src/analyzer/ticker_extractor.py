@@ -12,7 +12,7 @@ AMBIGUOUS_TICKERS = {
     "RUN", "SEE", "TWO", "WAR", "WAY", "WHO", "ANY", "BIG", "DAY",
     "DID", "GET", "GOT", "HIM", "HIS", "HOW", "ITS", "LET", "MAY",
     "SAY", "SHE", "TOO", "USE", "HER", "WAS", "NOT", "BUT", "HAD",
-    "HAS", "LOW", "KEY", "FUN", "TRUE", "WELL", "REAL", "GOOD",
+    "LOW", "KEY", "FUN", "TRUE", "WELL", "REAL", "GOOD",
     "BEST", "FAST", "HUGE", "VERY", "OPEN", "LAND", "PLAY", "TURN",
 }
 

@@ -35,7 +35,7 @@ The dashboard exposes argument scores, source discussions, tracked stocks, score
 
 ## Engineering
 
-- **Reddit collection:** public JSON endpoints, paced requests, retry after rate limiting, and deduplication by source ID.
+- **Reddit collection:** public JSON endpoints, paced requests, a single retry after rate limiting, and deduplication by source ID.
 - **Filtering before model calls:** explicit ticker symbols, company-name matching, ambiguity handling, and financial-context checks.
 - **Per-stock LLM assessment:** separate reasoning, specificity, novelty, and credibility scores for each stock thesis in a post; sentiment and a short explanation accompany the scores.
 - **Backend interchangeability:** Gemini, Anthropic, local Ollama, and a mock scorer. Gemini supports retries and a fallback model.
@@ -54,16 +54,19 @@ Reddit → ticker/context filter → per-stock LLM scores → SQLite
 
 ## Run locally
 
-Python 3.12 is used by the GitHub workflow and Docker image.
+Python 3.10 or newer is required; 3.12 is used by the GitHub workflows and Docker image.
 
 ```sh
 python -m venv .venv
 # Activate .venv using the command for your shell.
 python -m pip install -r requirements.txt
-python scripts/download_tickers.py
 ```
 
-Copy `.env.example` to `.env` and supply the key for your chosen scoring provider. Backend selection and thresholds are in `config/settings.py`. The dashboard can inspect the included database without model credentials.
+Copy `.env.example` to `.env` and supply the key for your chosen scoring provider. Backend selection and thresholds are in `config/settings.py`.
+
+The dashboard can inspect the included database without model credentials. It opens the database read-only, so viewing leaves the published snapshot unchanged. "Latest day" counts and trailing windows end at the most recent data in the database rather than at today's date.
+
+The ticker list used for symbol recognition is included as `data/tickers.csv`. `python scripts/download_tickers.py` replaces it with the current Nasdaq listing; this is only needed before scoring new text.
 
 ```sh
 python main.py dashboard
@@ -74,7 +77,7 @@ python main.py track
 
 Running `python main.py` executes all three pipeline stages. Model scoring can incur provider charges. Scraping retrieves the configured listings and eligible top-level comments; it does not enforce a 24-hour publication cutoff.
 
-For experiments, set `DB_PATH` to a separate database path. Preserve the historical snapshot before running tracking or scoring against it.
+For experiments, set `DB_PATH` to a separate database path. Any pipeline stage (`scrape`, `analyze`, `track`) writes to the database, after which the evaluation scripts no longer accept it as the published snapshot; preserve the snapshot before running them against it.
 
 The workflow in `.github/workflows/daily-pipeline.yml` runs only when manually dispatched from GitHub Actions. Configure the `GEMINI_API_KEY` repository secret first. It analyzes and tracks a working copy of the included database, then uploads that copy as a downloadable artifact retained for seven days. It has read-only repository permissions and does not commit results. Model scoring can incur provider charges.
 
@@ -83,6 +86,10 @@ The Windows helper `scripts/scrape_and_sync.bat` performs local collection and G
 ```sh
 docker build -t reddit-thesis-analyzer .
 docker run -p 8050:8050 reddit-thesis-analyzer
+```
+
+```sh
+python -m pip install -r requirements-dev.txt
 python -m pytest tests -q
 ```
 
@@ -98,4 +105,4 @@ These constraints are part of interpreting the experiment, not evidence for or a
 
 ## Verification
 
-The suite contains **150 tests** covering collection, scoring, persistence, tracking, API routes, and evaluation behavior. External services are mocked so the suite can run without provider credentials. Model quality and live service availability require separate evaluation.
+The suite contains **158 tests** covering collection, scoring, persistence, tracking, API routes, and evaluation behavior, and runs in GitHub Actions on pushes and pull requests. External services are mocked so the suite can run without provider credentials. Model quality and live service availability require separate evaluation.

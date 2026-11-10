@@ -1,5 +1,4 @@
 # src/scoring/factory.py
-import anthropic
 from src.scoring.scorer_interface import ScorerInterface, MockScorer
 from src.scoring.anthropic_scorer import AnthropicScorer
 from src.scoring.ollama_scorer import OllamaScorer

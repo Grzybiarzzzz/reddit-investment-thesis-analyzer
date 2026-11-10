@@ -15,7 +15,7 @@ def download_tickers():
     }
 
     print("Downloading ticker list from NASDAQ...")
-    response = requests.get(NASDAQ_URL, headers=headers)
+    response = requests.get(NASDAQ_URL, headers=headers, timeout=30)
     response.raise_for_status()
     data = response.json()
 
@@ -28,12 +28,14 @@ def download_tickers():
     with open(OUTPUT_PATH, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Symbol"])
+        saved = 0
         for row in rows:
             symbol = row.get("symbol", "").strip()
             if symbol and symbol.isalpha() and len(symbol) <= 5:
                 writer.writerow([symbol])
+                saved += 1
 
-    print(f"Saved {len(rows)} tickers to {OUTPUT_PATH}")
+    print(f"Saved {saved} tickers to {OUTPUT_PATH}")
 
 
 def _write_fallback():

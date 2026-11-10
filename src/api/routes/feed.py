@@ -1,6 +1,6 @@
 """Feed API route."""
 from fastapi import APIRouter, Query
-from src.api.app import get_db
+from src.api.app import get_db, PERMALINK_SQL
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ async def feed(
             where_clauses.append("a.sentiment = ?")
             params.append(sentiment)
         if subreddit:
-            where_clauses.append("COALESCE(p.subreddit, cp.subreddit) = ?")
+            where_clauses.append("COALESCE(p.subreddit, cp.subreddit) = ? COLLATE NOCASE")
             params.append(subreddit)
         if min_score is not None:
             where_clauses.append("a.overall_score >= ?")
@@ -54,7 +54,7 @@ async def feed(
             SELECT a.*,
                    COALESCE(p.title, cp.title) as title,
                    COALESCE(p.subreddit, cp.subreddit) as subreddit,
-                   COALESCE(p.url, cp.url) as reddit_url,
+                   {PERMALINK_SQL} as reddit_url,
                    COALESCE(p.score, c.score) as post_score,
                    CASE WHEN a.source_type = 'post' THEN substr(p.body, 1, 200)
                         ELSE substr(c.body, 1, 200) END as body_snippet
